@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Consulta de Asistencia – Calendario Dinámico</title>
+  <meta name="theme-color" content="#E53935" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="asistencia.css" />
+
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <div class="container">
+
+    <div id="updateInfoModal" class="modal">
+      <div class="modal-content">
+        <p>
+          <span class="blink">Aviso!!!</span> El reporte de asistencia mensual se actualiza el día 27 de cada mes, <br>
+          correspondiente al periodo del 22 del mes anterior al 21 del mes en curso.
+        </p>
+        <button id="closeModal">Aceptar</button>
+      </div>
+    </div>
+
+    <div id="overlay"><div class="spinner"></div></div>
+
+    <header class="header">
+  <h1 class="site-title">
+    <span class="logo-icon">📆</span>
+    <span class="title-red">Consulta de Asistencia</span>
+  </h1>
+
+  <div class="form-container">
+    <form id="searchForm" class="search-form">
+      <input
+        id="dniInput"
+        type="text"
+        inputmode="numeric"
+        pattern="\d{8}"
+        maxlength="8"
+        placeholder="DNI (8 dígitos)"
+        required
+      />
+      <button type="submit">Buscar</button>
+    </form>
+
+    <img src="leyenda.jpg" alt="Imagen Descriptiva" class="header-image" />
+    </div>
+
+  <button id="btn-regresar" class="btn-regresar">
+    <span class="icon">←</span> Regresar
+  </button>
+
+  <p id="message" class="message"></p>
+  <p id="fullName" class="full-name"></p>
+</header>
+
+    <main>
+      <section class="calendar-container">
+        
+        <div class="stats-panel">
+          <div class="stat">
+            <h3># Total Asistencia Validada</h3>
+            <p id="stat-validated">–</p>
+          </div>
+          <div class="stat">
+            <h3># No Marcó</h3>
+            <p id="stat-no-show">–</p>
+          </div>
+          <div class="stat">
+            <h3># Debió Marcar</h3>
+            <p id="stat-should-show">–</p>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script src="asistencia.js"></script>
+</body>
+</html>

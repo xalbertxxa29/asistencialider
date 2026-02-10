@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Reportes</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+
+<script src="firebase-config.js"></script>
+</head>
+<body>
+  <div id="infoModal" class="modal">
+    <div class="modal-content">
+      <p>
+        <span class="blink">Aviso!!!</span>El reporte de asistencia mensual se actualizara el día 27 de cada mes, <br>
+          correspondiente al periodo del 22 del mes anterior al 21 del mes en curso.
+      </p>
+      <button id="closeInfoModal">Aceptar</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>Panel de Reportes</h1>
+    <div class="buttons">
+      <button class="report-btn" id="reporte-marcacion">REPORTE DE MARCACION</button>
+      <button class="report-btn" id="reporte-mensual">REPORTE MENSUAL</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

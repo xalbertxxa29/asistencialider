@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuración de Reportes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    :root {
+      --primary: #0d47a1; --secondary: #1976d2; --success: #4caf50;
+      --danger: #e53935; --radius: 12px; --trans: all 0.3s ease;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(rgba(13, 71, 161, 0.7), rgba(25, 118, 210, 0.7)),
+                  url("images/fondo-oficina.png") no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      gap: 20px;
+      min-height: 100vh;
+    }
+    .card {
+      background: #fff; color: #333; border-radius: var(--radius);
+      padding: 28px; width: 100%; max-width: 450px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.2);
+      text-align: center; position: relative;
+    }
+    .card h1 {
+      font-size: 1.5rem; color: var(--primary); margin-bottom: 20px;
+    }
+    .estado, .status {
+      font-size: 1rem; margin-bottom: 16px; font-weight: 600; min-height: 24px;
+    }
+    .botones, .config-group { display: flex; gap: 12px; margin-bottom: 12px; }
+    button {
+      padding: 12px 20px; font-size: 1rem; font-weight: 500;
+      border: none; border-radius: var(--radius); cursor: pointer;
+      transition: var(--trans); flex-grow: 1;
+    }
+    .btn-enable { background: var(--success); color: white; }
+    .btn-disable { background: var(--danger); color: white; }
+    #save-period-btn { background: var(--secondary); color: white; width: 100%; }
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+    .overlay {
+      position: absolute; inset: 0; background: rgba(255,255,255,0.85);
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius); opacity: 0; pointer-events: none; transition: var(--trans);
+    }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    .spinner {
+      width: 42px; height: 42px; border: 5px solid var(--primary);
+      border-top: 5px solid transparent; border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    select {
+        width: 100%; padding: 10px; border-radius: 8px;
+        border: 2px solid #ccc; font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1><span style="font-size: 1.8rem;">🚦</span> Control de Botón de Reporte Mensual</h1>
+    <p id="estado" class="estado">Cargando estado...</p>
+    <div class="botones">
+      <button class="btn-disable">Deshabilitar</button>
+      <button class="btn-enable">Habilitar</button>
+    </div>
+    <div class="overlay" id="loader-button">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <div class="card">
+      <h1><span style="font-size: 1.8rem;">🗓️</span> Configurar Período de Reporte de Asistencia</h1>
+      <div class="config-group">
+          <select id="year-select">
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+          </select>
+          <select id="month-select"></select>
+      </div>
+      <button id="save-period-btn">Guardar Período</button>
+      <p id="period-status" class="status"></p>
+      <div class="overlay" id="loader-period">
+        <div class="spinner"></div>
+      </div>
+  </div>
+
+  <script>
+    const db = firebase.firestore();
+
+    // --- Lógica para la Card 1: Habilitar/Deshabilitar Botón ---
+    const estadoEl = document.getElementById("estado");
+    const loaderButton = document.getElementById("loader-button");
+    const btnEnable = document.querySelector(".btn-enable");
+    const btnDisable = document.querySelector(".btn-disable");
+    const buttonDocRef = db.collection("configuracion").doc("reporteMensual");
+
+    function showButtonLoader(isLoading) { loaderButton.classList.toggle("active", isLoading); }
+    function setButtonStatusText(habilitado) {
+        if (!habilitado) {
+            estadoEl.textContent = "🔒 El botón está DESHABILITADO";
+            estadoEl.style.color = "#e53935";
+        } else {
+            estadoEl.textContent = "✅ El botón está HABILITADO";
+            estadoEl.style.color = "#388e3c";
+        }
+    }
+    async function loadButtonStatus() {
+        showButtonLoader(true);
+        try {
+            const docSnap = await buttonDocRef.get();
+            setButtonStatusText(docSnap.exists && docSnap.data().habilitado);
+        } catch (error) {
+            estadoEl.textContent = "⚠️ Error al leer estado.";
+            console.error(error);
+        } finally {
+            showButtonLoader(false);
+        }
+    }
+    async function changeButtonStatus(habilitado) {
+        showButtonLoader(true);
+        try {
+            await buttonDocRef.set({ habilitado });
+            setButtonStatusText(habilitado);
+        } catch (error) {
+            estadoEl.textContent = "⚠️ Error al actualizar.";
+        } finally {
+            setTimeout(() => showButtonLoader(false), 500);
+        }
+    }
+    btnEnable.addEventListener("click", () => changeButtonStatus(true));
+    btnDisable.addEventListener("click", () => changeButtonStatus(false));
+    loadButtonStatus();
+
+    // --- Lógica para la Card 2: Configurar Período ---
+    const yearSelect = document.getElementById("year-select");
+    const monthSelect = document.getElementById("month-select");
+    const savePeriodBtn = document.getElementById("save-period-btn");
+    const periodStatusEl = document.getElementById("period-status");
+    const loaderPeriod = document.getElementById("loader-period");
+    const periodDocRef = db.collection("configuracion").doc("reporteAsistencia");
+
+    const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    months.forEach((month, index) => {
+        monthSelect.add(new Option(month, index));
+    });
+
+    function showPeriodLoader(isLoading) { loaderPeriod.classList.toggle("active", isLoading); }
+    function showPeriodStatus(message, color) {
+        periodStatusEl.textContent = message;
+        periodStatusEl.style.color = color;
+    }
+    async function loadPeriodConfig() {
+        showPeriodLoader(true);
+        try {
+            const docSnap = await periodDocRef.get();
+            if (docSnap.exists) {
+                const { year = 2025, startMonth = 3 } = docSnap.data();
+                yearSelect.value = year;
+                monthSelect.value = startMonth;
+            } else {
+                await periodDocRef.set({ year: 2025, startMonth: 3 });
+            }
+        } catch (error) {
+            showPeriodStatus("⚠️ Error al cargar período.", "#e53935");
+        } finally {
+            showPeriodLoader(false);
+        }
+    }
+    savePeriodBtn.addEventListener("click", async () => {
+        showPeriodLoader(true);
+        const config = {
+            year: parseInt(yearSelect.value),
+            startMonth: parseInt(monthSelect.value)
+        };
+        try {
+            await periodDocRef.set(config);
+            showPeriodStatus("✅ Período guardado con éxito.", "#388e3c");
+        } catch (error) {
+            showPeriodStatus("⚠️ Error al guardar período.", "#e53935");
+        } finally {
+            setTimeout(() => showPeriodLoader(false), 500);
+        }
+    });
+    loadPeriodConfig();
+  </script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+/* Design Tokens */
+:root {
+  --font-family: 'Inter', sans-serif;
+  --bg-gradient-1: #0d1b2a;
+  --bg-gradient-2: #1b263b;
+  --bg-gradient-3: #415a77;
+  --bg-gradient-4: #778da9;
+
+  /* Botones principales rojos */
+  --btn-bg: #E53935;
+  --btn-border: #B71C1C;
+  --btn-hover-bg: #D32F2F;
+
+  --blue: #1E88E5; /* Añadido para el botón del modal */
+
+  --btn-radius: 12px;
+  --btn-padding: 1rem 2rem;
+  --btn-font-size: 1.2rem;
+  --btn-font-weight: 600;
+  --transition-speed: 0.3s;
+
+  --shadow-heavy: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+/* Global Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html, body {
+  height: 100%;
+}
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(-45deg, var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3), var(--bg-gradient-4));
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+  font-family: var(--font-family);
+  color: #fff;
+  perspective: 1000px;
+  overflow: hidden;
+  transition: opacity 0.5s ease;
+  opacity: 1;
+}
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Fade-out Class */
+.fade-out {
+  opacity: 0;
+}
+
+/* Container */
+.container {
+  text-align: center;
+  z-index: 1;
+}
+.container h1 {
+  font-size: 3rem;
+  margin-bottom: 2rem;
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+}
+.buttons {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+}
+
+/* Button Styles */
+.report-btn {
+  position: relative;
+  padding: var(--btn-padding);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
+  color: #fff;
+  background: var(--btn-bg);
+  border: 2px solid var(--btn-border);
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  transition: transform var(--transition-speed), background var(--transition-speed), box-shadow var(--transition-speed);
+  transform-style: preserve-3d;
+  outline: none;
+}
+.report-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--btn-radius);
+  transform: translateZ(-1px) scale(0.98);
+  transition: transform var(--transition-speed);
+}
+.report-btn:hover {
+  background: var(--btn-hover-bg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transform: translateZ(20px) scale(1.05);
+  color: #fff;
+}
+
+/* === NUEVA CLASE PARA SIMULAR ESTADO DESHABILITADO === */
+.report-btn.disabled-state {
+  background: #B0BEC5; /* Un color grisáceo */
+  border-color: #78909C;
+  cursor: not-allowed;
+  /* Anulamos el efecto hover para que no se vea activo */
+  pointer-events: auto; /* IMPORTANTE: Mantenemos los eventos de puntero */
+}
+
+/* Hacemos que la animación 3D no se aplique si está deshabilitado */
+.report-btn.disabled-state:hover {
+    background: #B0BEC5;
+    box-shadow: none;
+    transform: none;
+}
+/* === FIN DE LA NUEVA CLASE === */
+
+
+/* Modal de aviso (Nuevos estilos para el modal) */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+  z-index: 1000;
+}
+.modal.show {
+  display: flex;
+}
+.modal-content {
+  background: #fff;
+  padding: 1.2rem;
+  border-radius: var(--btn-radius);
+  max-width: 360px;
+  text-align: center;
+  box-shadow: var(--shadow-heavy);
+}
+.modal-content p {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+  color: #333; /* Asegura que el texto sea oscuro sobre fondo blanco */
+}
+.blink {
+  color: var(--btn-bg); /* Usa la variable de color rojo definida */
+  font-weight: 700;
+  animation: blinkAnim 1s step-end infinite;
+}
+@keyframes blinkAnim {
+  50% { visibility: hidden; }
+}
+#closeInfoModal {
+  background: var(--blue); /* Usa la variable de color azul definida */
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background .2s;
+}
+#closeInfoModal:hover {
+  background: #1565c0; /* Un azul más oscuro al pasar el ratón */
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .buttons {
+      flex-direction: column;
+  }
+  .report-btn {
+      width: 100%;
+  }
+}
