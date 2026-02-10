@@ -169,9 +169,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const dayKey = cell.dataset.day;
         let val = (record[dayKey] || "F").toString().trim().toUpperCase(); // 'F' por defecto
 
+        // --- MEJORA VISUAL: Forzar formato con barra ---
+        // Si viene "NA" lo convertimos a "N/A". Si viene "MI" lo convertimos a "M/I".
+        if (val === "NA") val = "N/A";
+        if (val === "MI") val = "M/I";
+
         cell.classList.remove("skeleton");
         cell.querySelector(".value").textContent = val;
-        cell.classList.add("has-value", `val-${val}`);
+
+        // Limpiamos el valor para usarlo como clase CSS (ej: "M/I" -> "MI", "N/A" -> "NA")
+        //  que coincide con asistencia.css (.val-MI, .val-NA)
+        const safeClass = val.replace(/[^A-Z0-9]/g, '');
+        cell.classList.add("has-value", `val-${safeClass}`);
+
         setTimeout(() => cell.classList.add("visible"), i * 20); // Animación escalonada
       });
 
