@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Referencias al DOM ---
   const modal = document.getElementById('updateInfoModal');
   const closeBtn = document.getElementById('closeModal');
-  const apiUrl = "https://script.google.com/macros/s/AKfycbwTUTnui7bgQ18lwan1YwzdO0Thq99nh_3jkdOgUPTrPARgfyGjKqMNzRQQiQwaotGX/exec";
+  // Nueva API apuntando a la hoja "General" y fila 4
+  const apiUrl = "https://script.google.com/macros/s/AKfycbxvvTR6hP-BY9snJlHqbClqIPq0hYLyIm8KJmncNT0UuEPj3-FZqadFRuKztIU7LP37uw/exec";
   const form = document.getElementById("searchForm");
   const inp = document.getElementById("dniInput");
   const msg = document.getElementById("message");
@@ -147,42 +148,54 @@ document.addEventListener('DOMContentLoaded', () => {
       // 2. Generar la estructura del calendario
       generateCalendars(year, startMonth);
 
-      // 3. Buscar el registro del empleado
-      const record = apiData.find(r => r.DNI && String(r.DNI).trim() === dni);
+      // 3. Procesar los datos (Formato Horizontal: Una fila por empleado)
+      // Como el servidor ya filtra por DNI (o devuelve todo si no), apiData es un Array de registros.
+      let record = null;
+      if (Array.isArray(apiData)) {
+        // Buscamos si hay registros para este DNI en la respuesta
+        record = apiData.find(r => r.DNI && String(r.DNI).trim() === dni);
+      }
 
       if (!record) {
-        showMessage("No se encontró registro para el DNI ingresado.", "error");
+        showMessage("No se encontró registro para el DNI ingresado en el reporte General.", "error");
         return;
       }
 
-      // 4. Poblar la UI con los datos encontrados
-      fullNameEl.textContent = record["APELLIDOS Y NOMBRES"] || "Nombre no encontrado";
+      // 4. Obtener Nombre
+      // Buscamos flexibilidad en el nombre de la columna
+      const nombre = record["APELLIDOS Y NOMBRES"] || record["NOMBRES"] || record["Empleado"] || "Nombre no encontrado";
+
+      fullNameEl.textContent = nombre;
       fullNameEl.classList.add('visible');
+
+      // Calcular totales (Si la hoja no los trae pre-calculados, podríamos sumarlos aquí)
       statValidated.textContent = record["# TOTAL ASISTENCIA VALIDADA"] || "0";
       statNoShow.textContent = record["# NO MARCÓ"] || "0";
       statShould.textContent = record["# DEBIO MARCAR"] || "0";
 
       showMessage("¡Registro encontrado con éxito!", "success");
 
-      // 5. Rellenar las celdas del calendario
+      // 5. Rellenar las celdas del calendario (Leyendo columnas 1, 2, 3...)
       document.querySelectorAll('.month-calendar .day[data-day]').forEach((cell, i) => {
-        const dayKey = cell.dataset.day;
-        let val = (record[dayKey] || "F").toString().trim().toUpperCase(); // 'F' por defecto
+        const dayKey = cell.dataset.day; // ej: "22", "01"
+        // La hoja General tiene columnas como "1", "2", "22".
+        // El dataset.day puede tener cero a la izquierda ("05"). Probamos ambas claves.
+        const dayInt = parseInt(dayKey, 10).toString(); // "05" -> "5"
+
+        let val = (record[dayKey] || record[dayInt] || "F").toString().trim().toUpperCase();
 
         // --- MEJORA VISUAL: Forzar formato con barra ---
-        // Si viene "NA" lo convertimos a "N/A". Si viene "MI" lo convertimos a "M/I".
         if (val === "NA") val = "N/A";
         if (val === "MI") val = "M/I";
 
         cell.classList.remove("skeleton");
         cell.querySelector(".value").textContent = val;
 
-        // Limpiamos el valor para usarlo como clase CSS (ej: "M/I" -> "MI", "N/A" -> "NA")
-        //  que coincide con asistencia.css (.val-MI, .val-NA)
+        // Limpiamos el valor para usarlo como clase CSS
         const safeClass = val.replace(/[^A-Z0-9]/g, '');
         cell.classList.add("has-value", `val-${safeClass}`);
 
-        setTimeout(() => cell.classList.add("visible"), i * 20); // Animación escalonada
+        setTimeout(() => cell.classList.add("visible"), i * 20);
       });
 
     } catch (error) {
